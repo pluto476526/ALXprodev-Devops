@@ -19,7 +19,7 @@ fetch_pokemon() {
     if [[ "$RESPONSE" -eq 200 ]]; then
         echo "Saved data to $OUTPUT_DIR/$POKEMON.json ✅"
     else
-        echo "Failed to fetch $POKEMON (HTTP $RESPONSE)" | tee -a "$ERROR_LOG"
+        echo "❌ Failed to fetch $POKEMON (HTTP $RESPONSE)" | tee -a "$ERROR_LOG"
         rm -f "$OUTPUT_DIR/$POKEMON.json"
     fi
 }
@@ -32,8 +32,17 @@ for POKEMON in "${POKEMONS[@]}"; do
     fetch_pokemon "$POKEMON" &
 done
 
-# Wait for all background processes to complete
+# Show active jobs
+jobs -l
+
+# Wait for all jobs to complete
 wait
 
-echo "All downloads complete!"
+# If any background job is still hanging (unlikely), clean up
+for j in $(jobs -p); do
+    echo "Killing leftover process $j..."
+    kill "$j" 2>/dev/null
+done
+
+echo "✅ All downloads complete!"
 
